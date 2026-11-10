@@ -28,7 +28,7 @@ async function gem(parts,ratio){
  const body={model:MODEL(),prompt:parts[0].text,n:1,aspect_ratio:ratio,resolution:'2K',output_format:'png',input_references:parts.slice(1).map(u=>({type:'image_url',image_url:{url:u}}))};
  for(let t=0;t<3;t++){
   const r=await fetch(API()+'/images',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+KEY()},body:JSON.stringify(body)}),j=await r.json().catch(()=>({})),e=j.error||{};
-  if(r.ok){const d=j.data?.[0];if(!d?.b64_json)throw Error('Model tidak mengembalikan gambar. Coba generate ulang.');return toPng({mimeType:d.media_type||'image/png',data:d.b64_json})}
+  if(r.ok){const d=j.data?.[0];if(!d?.b64_json)throw Error('Model tidak mengembalikan gambar. Coba generate ulang.');const b=await toPng({mimeType:d.media_type||'image/png',data:d.b64_json});b.low=!body.resolution;return b}
   if(['unsupported_parameter','invalid_parameter'].includes(e.code)&&['resolution','output_format'].includes(e.param)){delete body[e.param];continue}
   throw Error((e.message||'Gagal ('+r.status+')').replace(/\s*Error ID:.*$/,''))}
  throw Error('Parameter ditolak model. Coba model lain.')}
@@ -42,7 +42,7 @@ async function job(k){
    x.drawImage(bg,(W-bg.naturalWidth*s)/2,(H-bg.naturalHeight*s)/2,bg.naturalWidth*s,bg.naturalHeight*s);x.drawImage(tw,0,0,W,H);
    b=await new Promise(r=>c.toBlob(r,'image/png'))}
   else b=await gem([{text:BASE+`Pose/angle (in Indonesian): ${POSES[+k.slice(1)]}. Output only the final image, no text, no watermark.`},part(S.rf,1536),part(S[k],1536)],ratio1());
-  R[k]=b;paint(k,URL.createObjectURL(b));d.classList.add('res')
+  R[k]=b;paint(k,URL.createObjectURL(b));d.classList.add('res');if(b.low)m.textContent='Model ini tidak mendukung 2K, hasil memakai ukuran bawaan model.'
  }catch(e){d.classList.add('err');m.textContent=/fetch/i.test(e.message)?'Tidak tersambung ke YupiAI. Kemungkinan diblokir browser (CORS): isi alamat proxy di Pengaturan.':e.message}
  d.classList.remove('load')}
 const pool=async(ks,n=3)=>{const q=[...ks];await Promise.all(Array(n).fill().map(async()=>{while(q.length)await job(q.shift())}))};
@@ -64,7 +64,7 @@ document.addEventListener('drop',e=>{e.preventDefault();const d=e.target.closest
 async function loadModels(){const k=$('#k').value.trim(),b=$('#ld');localStorage.gp=$('#p').value.trim();if(!k)return;b.textContent='Memuat...';
  try{const r=await fetch(API()+'/images/models',{headers:{Authorization:'Bearer '+k}}),j=await r.json();if(!r.ok)throw Error();
   const l=(j.data||j.models||j).filter(m=>m&&(m.id||m.model)),ed=l.filter(m=>JSON.stringify(m).includes('image_editing')),ids=(ed.length?ed:l).map(m=>m.id||m.model);
-  $('#ml').innerHTML=ids.map(i=>`<option value="${i}">`).join('');if(!$('#m').value)$('#m').value=ids.find(i=>/gemini|banana/i.test(i))||ids[0]||'';b.textContent='Muat model'}
+  $('#ml').innerHTML=ids.map(i=>`<option value="${i}">`).join('');if(!$('#m').value)$('#m').value=ids.find(i=>/nano-banana-2|gemini-3\.1-flash-image/i.test(i))||ids.find(i=>/gemini|banana/i.test(i))||ids[0]||'';b.textContent='Muat model'}
  catch{b.textContent='Gagal, isi manual'}}
 $('#ld').onclick=loadModels;
 $('#cfg').onclick=()=>{$('#p').value=localStorage.gp||'';$('#k').value=KEY();$('#m').value=MODEL();$('#dlg').showModal();loadModels()};
