@@ -19,10 +19,16 @@ h2{font-size:14px;font-weight:400;text-transform:uppercase;letter-spacing:.06em;
 .view.out{opacity:0;transform:translateY(-8px);transition:.22s}
 @keyframes in{from{opacity:0;transform:translateY(12px)}}
 .row{display:flex;gap:32px;margin-bottom:30px;flex-wrap:wrap}.grow{flex:1;min-width:240px}
+#tb .grow{max-width:420px}
+.grow select+h2{margin-top:22px}
 .note{color:#6b7a5a;margin-top:14px;max-width:380px}
 label{display:block;font-size:12px;margin-bottom:16px}
-select,input{display:block;width:100%;margin-top:6px;padding:9px 11px;border:1px solid var(--gr);background:#fffdf8;font:inherit;color:var(--ink);border-radius:0}
+select,input,textarea{display:block;width:100%;margin-top:6px;padding:9px 11px;border:1px solid var(--gr);background:#fffdf8;font:inherit;color:var(--ink);border-radius:0}
+textarea{margin-top:0;min-height:170px;resize:vertical;line-height:1.55}
 :focus-visible{outline:2px solid var(--y);outline-offset:2px}
+.pbox{margin-bottom:30px}
+.phead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.phead h2{margin:0}
+.pbox .note{max-width:none;margin-top:10px;font-size:12px}
 .drop{position:relative;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--gd);border:1px solid #9cbba5;background:#fffdf8d9 center/cover no-repeat;cursor:pointer;overflow:hidden;transition:background-color .2s,border-color .2s}
 .drop:hover{border-color:var(--gr);background-color:#fcf6c8}
 .drop.has{border-color:var(--navy)}.has span{display:none}

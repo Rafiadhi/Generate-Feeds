@@ -15,8 +15,14 @@
   <div><h2>Referensi</h2><div class="drop single" data-k="rf"><span>Tambah foto referensi</span></div></div>
   <div class="grow">
    <h2>Ukuran hasil</h2><select id="size1"></select>
+   <h2>Produk yang tampil</h2><select id="qty1" class="qty"></select>
    <p class="note">9 pose (depan, samping, belakang, atas, dan detail) disebar otomatis ke tiap foto sepatu.</p>
   </div>
+ </div>
+ <div class="pbox">
+  <div class="phead"><h2>Prompt</h2><button class="ghost" data-reset="#pr1">Reset prompt</button></div>
+  <textarea id="pr1" rows="10" spellcheck="false"></textarea>
+  <p class="note">{ratio} diisi rasio hasil, {jumlah} diisi jumlah produk, {pose} diisi pose tiap foto. Kalau {pose} dihapus, pose tetap ditambahkan di akhir prompt.</p>
  </div>
  <h2>Foto sepatu</h2><div class="grid" id="grid"></div>
  <div class="bar"><button class="main" id="go1" disabled>Generate</button><span class="msg" id="m1">Klik kanan (atau tap) hasil untuk download / generate ulang.</span></div>
@@ -26,6 +32,14 @@
   <div><h2>Twibon (PNG transparan)</h2><div class="drop single" data-k="tw"><span>Tambah twibon</span></div></div>
   <div><h2>Referensi</h2><div class="drop single" data-k="rf2"><span>Tambah referensi</span></div></div>
   <div><h2>Foto sepatu</h2><div class="drop single" data-k="sh2"><span>Tambah sepatu</span></div></div>
+ </div>
+ <div class="row">
+  <div class="grow"><h2>Produk yang tampil</h2><select id="qty2" class="qty"></select></div>
+ </div>
+ <div class="pbox">
+  <div class="phead"><h2>Prompt</h2><button class="ghost" data-reset="#pr2">Reset prompt</button></div>
+  <textarea id="pr2" rows="10" spellcheck="false"></textarea>
+  <p class="note">{ratio} diisi otomatis mengikuti twibon, {jumlah} diisi jumlah produk.</p>
  </div>
  <div class="bar"><button class="main" id="go2" disabled>Generate</button><span class="msg" id="m2">Rasio hasil mengikuti twibon.</span></div>
  <div class="drop" id="out" data-k="out"><span>Hasil muncul di sini</span></div>
