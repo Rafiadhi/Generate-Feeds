@@ -20,19 +20,21 @@ const KEY=()=>localStorage.gk||'',MODEL=()=>localStorage.gm||'',ratio1=()=>SIZES
 // Prompt bawaan. Kode otomatis: {ratio} {jumlah} {pose}
 const P1=`Buat foto produk dengan cahaya dramatis, rasio {ratio}, kualitas HD dan realistis.
 GAMBAR 1 adalah foto referensi. GAMBAR 2 adalah foto sepatu produk.
-Buat foto produk seperti GAMBAR 1 dengan produk sepatu dari GAMBAR 2.
-Hapus semua logo, teks, dan watermark kecuali logo yang ada pada sepatu.
+Tiru GAMBAR 1 sebagai foto produk: pakai lokasi, properti, latar, permukaan, pencahayaan, mood, tone, dan warna latar yang sama seperti GAMBAR 1.
+Ganti sepatu di GAMBAR 1 dengan sepatu dari GAMBAR 2. Sepatu asli dari GAMBAR 1 tidak boleh muncul di hasil.
+Dari GAMBAR 2 ambil HANYA sepatunya. Latar, meja, dinding, bar hitam, teks, dan tampilan layar HP di GAMBAR 2 tidak boleh ikut.
 Jangan ubah bentuk sepatu, jangan ubah bentuk logo pada sepatu, dan jangan ubah warnanya.
-Mood, tone, dan warna latar harus sama seperti GAMBAR 1.
+Hapus semua logo lain, kecuali logo yang ada pada sepatu.
 Ubah angle dan pose sepatu tetapi tetap bagus: {pose}.
 Jumlah produk yang tampil untuk warna ini: {jumlah}.
 Hasil akhir hanya gambar, tanpa teks dan tanpa watermark.`;
 const P2=`Buat foto produk dengan cahaya dramatis, rasio {ratio}, kualitas HD dan realistis.
 GAMBAR 1 adalah foto referensi. GAMBAR 2 adalah foto sepatu produk. GAMBAR 3 adalah frame twibon.
-Buat foto produk seperti GAMBAR 1 dengan produk sepatu dari GAMBAR 2.
-Hapus semua logo, teks, dan watermark kecuali logo yang ada pada sepatu.
+Tiru GAMBAR 1 sebagai foto produk: pakai lokasi, properti, latar, permukaan, pencahayaan, mood, tone, dan warna latar yang sama seperti GAMBAR 1.
+Ganti sepatu di GAMBAR 1 dengan sepatu dari GAMBAR 2. Sepatu asli dari GAMBAR 1 tidak boleh muncul di hasil.
+Dari GAMBAR 2 ambil HANYA sepatunya. Latar, meja, dinding, bar hitam, teks, dan tampilan layar HP di GAMBAR 2 tidak boleh ikut.
 Jangan ubah bentuk sepatu, jangan ubah bentuk logo pada sepatu, dan jangan ubah warnanya.
-Mood, tone, dan warna latar harus sama seperti GAMBAR 1.
+Hapus semua logo lain, kecuali logo yang ada pada sepatu.
 Ubah angle dan pose sepatu tetapi tetap bagus.
 Jumlah produk yang tampil: {jumlah}.
 Frame twibon (GAMBAR 3) akan ditempel di atas hasil nanti: atur komposisi supaya sepatu terlihat penuh dan tidak tertutup grafis frame. Jangan gambar frame, teks, atau watermark di hasil.`;
@@ -51,8 +53,8 @@ $$('.pose').forEach((p,i)=>p.textContent=POSES[i][0]);
 $('#size1').onchange=()=>$('#grid').style.setProperty('--ar',ratio1().replace(':','/'));
 $$('nav button').forEach(b=>b.onclick=()=>{if(b.classList.contains('on'))return;$$('nav button').forEach(x=>x.classList.toggle('on',x==b));const c=$('.view.on');c.classList.add('out');setTimeout(()=>{c.classList.remove('on','out');$('#'+b.dataset.v).classList.add('on')},220)});
 // Kolom prompt (tersimpan di browser)
-Object.entries(DEF).forEach(([s,d])=>{const t=$(s);t.value=localStorage[t.id]||d;t.oninput=()=>{localStorage[t.id]=t.value}});
-$$('[data-reset]').forEach(b=>b.onclick=()=>{const s=b.dataset.reset,t=$(s);t.value=DEF[s];delete localStorage[t.id]});
+Object.entries(DEF).forEach(([s,d])=>{const t=$(s),key=t.id+'_v2';t.value=localStorage[key]||d;t.oninput=()=>{localStorage[key]=t.value}});
+$$('[data-reset]').forEach(b=>b.onclick=()=>{const s=b.dataset.reset,t=$(s);t.value=DEF[s];delete localStorage[t.id+'_v2']});
 
 // Gambar
 const load=f=>new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=URL.createObjectURL(f)});
@@ -60,7 +62,20 @@ const load=f=>new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.one
 const part=(img,max,type='image/jpeg')=>{const r=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight)),c=document.createElement('canvas'),x=c.getContext('2d');c.width=Math.round(img.naturalWidth*r);c.height=Math.round(img.naturalHeight*r);if(type=='image/jpeg'){x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height)}x.drawImage(img,0,0,c.width,c.height);return c.toDataURL(type,.92)};
 const toPng=d=>new Promise(ok=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');c.width=i.naturalWidth;c.height=i.naturalHeight;c.getContext('2d').drawImage(i,0,0);c.toBlob(ok,'image/png')};i.src=`data:${d.mimeType};base64,${d.data}`});
 const paint=(k,u)=>{const d=el(k);d.style.backgroundImage=`url(${u})`;d.classList.add('has');d.classList.remove('pop');void d.offsetWidth;d.classList.add('pop')};
-async function setImg(k,f){if(!f||!f.type.startsWith('image/'))return;const i=await load(f);S[k]=i;delete R[k];paint(k,i.src);el(k).classList.remove('res','err');if(k=='tw')$('#out').style.aspectRatio=i.naturalWidth+'/'+i.naturalHeight;ready()}
+// Buang bar hitam di tepi foto (screenshot HP / letterbox, termasuk jam, tombol X, dan nomor foto di dalamnya) supaya tidak ikut terbaca AI
+async function trim(img){
+ const w=img.naturalWidth,h=img.naturalHeight,s=Math.min(1,1600/Math.max(w,h)),sw=Math.round(w*s),sh=Math.round(h*s),c=document.createElement('canvas');
+ c.width=sw;c.height=sh;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0,sw,sh);
+ const d=x.getImageData(0,0,sw,sh).data,lit=(X,y)=>{const i=(y*sw+X)*4;return d[i+3]<200||d[i]+d[i+1]+d[i+2]>60};
+ const row=y=>{let n=0;for(let X=0;X<sw;X++)n+=lit(X,y);return n>sw*.2};
+ let t=0,b=sh-1;while(t<b&&!row(t))t++;while(b>t&&!row(b))b--;
+ const col=X=>{let n=0;for(let y=t;y<=b;y++)n+=lit(X,y);return n>(b-t+1)*.2};
+ let l=0,r=sw-1;while(l<r&&!col(l))l++;while(r>l&&!col(r))r--;
+ if(!(t||l||b<sh-1||r<sw-1)||(r-l+1)*(b-t+1)<sw*sh*.15)return img;
+ const g=Math.ceil(2/s),X0=Math.round(l/s)+(l?g:0),Y0=Math.round(t/s)+(t?g:0),X1=Math.round((r+1)/s)-(r<sw-1?g:0),Y1=Math.round((b+1)/s)-(b<sh-1?g:0),cw=Math.min(w,X1)-X0,ch=Math.min(h,Y1)-Y0,o=document.createElement('canvas');
+ o.width=cw;o.height=ch;o.getContext('2d').drawImage(img,X0,Y0,cw,ch,0,0,cw,ch);
+ return load(await new Promise(ok=>o.toBlob(ok,'image/png')))}
+async function setImg(k,f){if(!f||!f.type.startsWith('image/'))return;let i=await load(f);if(k!='tw')try{i=await trim(i)}catch{}S[k]=i;delete R[k];paint(k,i.src);el(k).classList.remove('res','err');if(k=='tw')$('#out').style.aspectRatio=i.naturalWidth+'/'+i.naturalHeight;ready()}
 function ready(){const n=[...Array(9).keys()].filter(i=>S['s'+i]).length;$('#go1').disabled=!S.rf||!n;$('#go1').textContent=n?`Generate ${n} foto`:'Generate';$('#go2').disabled=!(S.tw&&S.rf2&&S.sh2)}
 
 // YupiAI
