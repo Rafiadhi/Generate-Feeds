@@ -1,16 +1,26 @@
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],el=k=>$(`[data-k="${k}"]`);
 const SIZES=[['4:5','Feeds Instagram (4:5)'],['1:1','Feeds persegi / marketplace (1:1)'],['9:16','Story & Reels (9:16)'],['16:9','Dekorasi toko landscape (16:9)'],['9:16','Dekorasi toko portrait (9:16)'],['21:9','Banner lebar (21:9)'],['3:4','Poster (3:4)'],['4:3','Landscape (4:3)']];
-// [label di kartu, deskripsi untuk prompt]
+// Semua pose = tampak samping (side profile). Arah hadap kiri/kanan diacak otomatis (lihat rollDir).
+// Variasinya hanya di sudut kamera dan jarak, tetap tampak samping.
 const POSES=[
- ['tampak depan','tampak depan lurus, simetris'],
- ['samping kiri','tampak samping kiri, profil sepatu terlihat penuh'],
- ['tiga perempat depan','sudut tiga perempat dari depan, angle klasik product shot'],
- ['tampak belakang','tampak belakang, area tumit terlihat jelas'],
- ['dari atas','dari atas (top view), tali dan lidah sepatu terlihat'],
- ['close-up sol','close-up sol dan midsole, tekstur terlihat tajam'],
- ['low angle hero shot','low angle hero shot, kamera rendah sehingga sepatu tampak gagah dan dramatis'],
- ['close-up ujung dan tali','close-up ujung sepatu dan tali, depth of field tipis'],
- ['diagonal','diletakkan diagonal secara dinamis (kalau lebih dari 1 pcs, tata berdampingan secara diagonal)']];
+ 'tampak samping lurus (side profile), seluruh sepatu terlihat penuh',
+ 'tampak samping dari low angle, kamera rendah sehingga sepatu tampak gagah dan dramatis',
+ 'tampak samping dengan kamera sedikit dari atas (high angle), bentuk bagian atas sepatu terlihat jelas',
+ 'tampak samping dari jarak sedikit lebih jauh (wide shot), sepatu tidak terlalu besar di frame dan suasana latar lebih terlihat',
+ 'close-up tampak samping pada sol dan midsole, tekstur terlihat tajam',
+ 'close-up tampak samping pada area tumit dan bagian belakang sepatu, detail jahitan terlihat tajam',
+ 'close-up tampak samping pada area tali dan lidah sepatu, depth of field tipis',
+ 'tampak samping hero shot, sepatu sedikit miring naik seolah sedang melangkah, dramatis',
+ 'tampak samping diletakkan diagonal secara dinamis di dalam frame'];
+const DIR=[],flip=d=>d=='kiri'?'kanan':'kiri';
+// Arah diacak tapi seimbang (4 vs 5), jadi pasti ada yang hadap kiri dan kanan
+function rollDir(){
+ const a=[...Array(9).keys()].map(i=>i<4?'kiri':'kanan');
+ if(Math.random()<.5)a.forEach((d,i)=>a[i]=flip(d));
+ for(let i=8;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+ DIR.splice(0,9,...a);showDir()}
+const showDir=()=>$$('.pose').forEach((p,i)=>p.textContent='samping '+DIR[i]);
+const poseText=i=>`${POSES[i]}. Ujung sepatu (bagian depan) menghadap ke sisi ${DIR[i].toUpperCase()} gambar. Wajib tampak samping murni, bukan dari depan dan bukan dari belakang`;
 const RT=['1:1','2:3','3:2','3:4','4:3','4:5','5:4','9:16','16:9','21:9'];
 const val=r=>{const[a,b]=r.split(':');return a/b};
 const near=x=>RT.reduce((a,b)=>Math.abs(Math.log(val(b)/x))<Math.abs(Math.log(val(a)/x))?b:a);
@@ -39,7 +49,7 @@ Ubah angle dan pose sepatu tetapi tetap bagus.
 Jumlah produk yang tampil: {jumlah}.
 Frame twibon (GAMBAR 3) akan ditempel di atas hasil nanti: atur komposisi supaya sepatu terlihat penuh dan tidak tertutup grafis frame. Jangan gambar frame, teks, atau watermark di hasil.`;
 const DEF={'#pr1':P1,'#pr2':P2};
-const QTY={a:'sama persis seperti jumlah sepatu pada GAMBAR 2 (1 atau 2 pcs untuk tiap warna)',1:'1 pcs sepatu saja',2:'2 pcs sepatu dengan warna yang sama'};
+const QTY={a:'ikuti GAMBAR 2. ATURAN: kalau GAMBAR 2 menampilkan 2 sepatu dengan model dan warna yang sama (sepasang), tampilkan HANYA 1 pcs sepatu di hasil, jangan tampilkan 2. Kalau GAMBAR 2 menampilkan 2 sepatu dengan model atau warna berbeda, tampilkan keduanya',1:'1 pcs sepatu saja',2:'2 pcs sepatu dengan warna yang sama'};
 function makePrompt(box,ratio,qty,pose){
  let t=$(box).value.trim()||DEF[box];
  if(pose&&!t.includes('{pose}'))t+='\nPose/angle foto ini: {pose}.';
@@ -47,9 +57,9 @@ function makePrompt(box,ratio,qty,pose){
 
 // UI
 $('#size1').innerHTML=SIZES.map((s,i)=>`<option value="${i}">${s[1]}</option>`).join('');
-$$('.qty').forEach(s=>s.innerHTML='<option value="a">Sesuai foto sepatu (otomatis 1 atau 2 pcs)</option><option value="1">1 pcs</option><option value="2">2 pcs</option>');
+$$('.qty').forEach(s=>s.innerHTML='<option value="a">Otomatis (sepasang yang sama jadi 1 pcs)</option><option value="1">1 pcs</option><option value="2">2 pcs</option>');
 $('#grid').innerHTML=[...Array(9).keys()].map(i=>`<div class="drop" data-k="s${i}"><span>Foto sepatu ${i+1}</span><i class="pose"></i></div>`).join('');
-$$('.pose').forEach((p,i)=>p.textContent=POSES[i][0]);
+rollDir();
 $('#size1').onchange=()=>$('#grid').style.setProperty('--ar',ratio1().replace(':','/'));
 $$('nav button').forEach(b=>b.onclick=()=>{if(b.classList.contains('on'))return;$$('nav button').forEach(x=>x.classList.toggle('on',x==b));const c=$('.view.on');c.classList.add('out');setTimeout(()=>{c.classList.remove('on','out');$('#'+b.dataset.v).classList.add('on')},220)});
 // Kolom prompt (tersimpan di browser)
@@ -96,20 +106,20 @@ async function job(k){
    const x=c.getContext('2d'),s=Math.max(W/bg.naturalWidth,H/bg.naturalHeight);
    x.drawImage(bg,(W-bg.naturalWidth*s)/2,(H-bg.naturalHeight*s)/2,bg.naturalWidth*s,bg.naturalHeight*s);x.drawImage(tw,0,0,W,H);
    b=await new Promise(r=>c.toBlob(r,'image/png'))}
-  else b=await gem([{text:makePrompt('#pr1',ratio1(),$('#qty1').value,POSES[+k.slice(1)][1])},part(S.rf,1536),part(S[k],2048)],ratio1());
+  else b=await gem([{text:makePrompt('#pr1',ratio1(),$('#qty1').value,poseText(+k.slice(1)))},part(S.rf,1536),part(S[k],2048)],ratio1());
   R[k]=b;paint(k,URL.createObjectURL(b));d.classList.add('res');if(b.low)m.textContent='Model ini tidak mendukung 2K, hasil memakai ukuran bawaan model.'
  }catch(e){d.classList.add('err');m.textContent=/fetch/i.test(e.message)?'Tidak tersambung ke YupiAI. Kemungkinan diblokir browser (CORS): isi alamat proxy di Pengaturan.':e.message}
  d.classList.remove('load')}
 const pool=async(ks,n=3)=>{const q=[...ks];await Promise.all(Array(n).fill().map(async()=>{while(q.length)await job(q.shift())}))};
 const needKey=()=>(!KEY()||!MODEL())&&($('#dlg').showModal(),1);
-$('#go1').onclick=async()=>{if(needKey())return;$('#go1').disabled=true;await pool([...Array(9).keys()].map(i=>'s'+i).filter(k=>S[k]));ready()};
+$('#go1').onclick=async()=>{if(needKey())return;$('#go1').disabled=true;rollDir();await pool([...Array(9).keys()].map(i=>'s'+i).filter(k=>S[k]));ready()};
 $('#go2').onclick=async()=>{if(needKey())return;$('#go2').disabled=true;await job('out');ready()};
 
 // Upload, klik kanan, drag & drop
 const inp=Object.assign(document.createElement('input'),{type:'file',accept:'image/*'}),mn=$('#menu');
 inp.onchange=()=>{setImg(target,inp.files[0]);inp.value=''};
 function menu(e,k){mk=k;$('[data-a=ch]').hidden=k=='out';mn.style.display='block';mn.style.left=Math.max(8,Math.min(e.clientX,innerWidth-mn.offsetWidth-8))+'px';mn.style.top=Math.max(8,Math.min(e.clientY,innerHeight-mn.offsetHeight-8))+'px'}
-mn.onclick=e=>{const a=e.target.dataset.a;if(a=='dl'){const l=document.createElement('a');l.href=URL.createObjectURL(R[mk]);l.download=`foto-produk-${mk}.png`;l.click()}if(a=='re'&&!needKey())job(mk);if(a=='ch'){target=mk;inp.click()}};
+mn.onclick=e=>{const a=e.target.dataset.a;if(a=='dl'){const l=document.createElement('a');l.href=URL.createObjectURL(R[mk]);l.download=`foto-produk-${mk}.png`;l.click()}if(a=='re'&&!needKey()){if(/^s\d$/.test(mk)){const i=+mk[1];DIR[i]=flip(DIR[i]);showDir()}job(mk)}if(a=='ch'){target=mk;inp.click()}};
 document.addEventListener('click',e=>{mn.style.display='none';const d=e.target.closest('.drop');if(!d)return;const k=d.dataset.k;if(R[k])return menu(e,k);if(k=='out')return;target=k;inp.click()});
 document.addEventListener('contextmenu',e=>{const d=e.target.closest('.drop');if(d&&R[d.dataset.k]){e.preventDefault();menu(e,d.dataset.k)}});
 document.addEventListener('dragover',e=>e.preventDefault());
