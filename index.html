@@ -16,13 +16,14 @@
   <div class="grow">
    <h2>Ukuran hasil</h2><select id="size1"></select>
    <h2>Produk yang tampil</h2><select id="qty1" class="qty"></select>
-   <p class="note">Semua foto tampak samping dengan 9 variasi sudut (low angle, wide, close-up, dan lainnya). Arah hadap kiri atau kanan diacak otomatis tiap kali Generate.</p>
+   <h2>Sudut sepatu</h2><select id="ang1"></select>
+   <p class="note">Default: semua sepatu tampak samping. Pakai foto sepatu yang sisi sampingnya terlihat jelas supaya hasilnya akurat.</p>
   </div>
  </div>
  <div class="pbox">
   <div class="phead"><h2>Prompt</h2><button class="ghost" data-reset="#pr1">Reset prompt</button></div>
   <textarea id="pr1" rows="10" spellcheck="false"></textarea>
-  <p class="note">{ratio} diisi rasio hasil, {jumlah} diisi jumlah produk, {pose} diisi pose tiap foto. Kalau {pose} dihapus, pose tetap ditambahkan di akhir prompt.</p>
+  <p class="note">{ratio} diisi rasio hasil, {jumlah} diisi jumlah produk, {pose} diisi sudut sepatu dari pilihan di atas. Kalau {pose} dihapus, sudut tetap ditambahkan di akhir prompt.</p>
  </div>
  <h2>Foto sepatu</h2><div class="grid" id="grid"></div>
  <div class="bar"><button class="main" id="go1" disabled>Generate</button><span class="msg" id="m1">Klik kanan (atau tap) hasil untuk download / generate ulang.</span></div>
@@ -34,22 +35,28 @@
   <div><h2>Foto sepatu</h2><div class="drop single" data-k="sh2"><span>Tambah sepatu</span></div></div>
  </div>
  <div class="row">
-  <div class="grow"><h2>Produk yang tampil</h2><select id="qty2" class="qty"></select></div>
+  <div class="grow"><h2>Produk yang tampil</h2><select id="qty2" class="qty"></select>
+   <h2>Sudut sepatu</h2><select id="ang2"></select></div>
  </div>
  <div class="pbox">
   <div class="phead"><h2>Prompt</h2><button class="ghost" data-reset="#pr2">Reset prompt</button></div>
   <textarea id="pr2" rows="10" spellcheck="false"></textarea>
-  <p class="note">{ratio} diisi otomatis mengikuti twibon, {jumlah} diisi jumlah produk.</p>
+  <p class="note">{ratio} diisi otomatis mengikuti twibon, {jumlah} diisi jumlah produk, {pose} diisi sudut sepatu.</p>
  </div>
  <div class="bar"><button class="main" id="go2" disabled>Generate</button><span class="msg" id="m2">Rasio hasil mengikuti twibon.</span></div>
  <div class="drop" id="out" data-k="out"><span>Hasil muncul di sini</span></div>
 </section>
 </main></div>
 <div id="menu"><button data-a="dl">Download PNG</button><button data-a="re">Generate ulang</button><button data-a="ch">Ganti foto</button></div>
-<dialog id="dlg"><h2>Pengaturan YupiAI</h2>
-<p>Ambil API key (diawali yupi_ai_) di dash.yupi.ai.id. Key hanya disimpan di browser ini, jadi tiap pengguna mengisi key sendiri.</p>
-<label>API key<input id="k" type="password" autocomplete="off" placeholder="yupi_ai_..."></label>
+<dialog id="dlg"><h2>Pengaturan AI</h2>
+<label>Layanan<select id="pv"><option value="gemini">Google Gemini</option><option value="yupi">YupiAI</option></select></label>
+<p id="hint"></p>
+<label>API key<input id="k" type="password" autocomplete="off"></label>
 <label>Model gambar<input id="m" list="ml" placeholder="pilih atau ketik Model ID"></label><datalist id="ml"></datalist>
-<label>Alamat proxy (opsional)<input id="p" placeholder="https://nama.akun.workers.dev"></label>
+<div id="gx">
+ <label>Resolusi hasil<select id="rs"><option value="1K">1K (lebih hemat)</option><option value="2K">2K (lebih tajam)</option></select></label>
+ <label class="chk"><input type="checkbox" id="th"> Mode teliti (lebih akurat, sedikit lebih lama)</label>
+</div>
+<label id="px">Alamat proxy (opsional)<input id="p" placeholder="https://nama.akun.workers.dev"></label>
 <div class="bar"><button class="ghost" id="ld">Muat model</button><button class="main" id="sv">Simpan</button></div></dialog>
 <script src="app.js"></script></body></html>

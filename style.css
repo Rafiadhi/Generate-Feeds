@@ -56,3 +56,6 @@ dialog::backdrop{background:#0006}
 dialog p{margin-bottom:16px;font-size:12px}dialog .bar{margin-top:6px}
 @media(max-width:640px){body{padding:16px 8px}.sheet{border-radius:18px}.sheet::before{left:12px}.sheet::after{right:12px}header{flex-wrap:wrap;padding:0 14px 10px 0;gap:8px}.logo{margin-left:13px;padding:10px 16px}main{padding:22px 26px 40px}.grid{gap:8px}.single{width:calc(50% - 16px)}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+[hidden]{display:none!important}
+.chk{display:flex;gap:8px;align-items:center}.chk input{display:inline-block;width:auto;margin:0}
+dialog{max-height:92vh;overflow:auto}
